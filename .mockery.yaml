@@ -1,0 +1,11 @@
+outpkg: "{{.PackageName}}"
+filename: "mock_{{ .InterfaceName | snakecase }}.go"
+mockname: "Mock{{.InterfaceName}}"
+with-expecter: true
+all: true # generate all interface
+dir: "internal/mocks/{{.PackageName}}"
+packages:
+  github.com/ebisaan/inventory/internal/application/port:
+    config:
+    interfaces:
+      DBPort:

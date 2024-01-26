@@ -12,18 +12,10 @@ import (
 )
 
 type Adapter struct {
-	*DB
-}
-
-type DB struct {
 	db *gorm.DB
 }
 
-func NewProductAdapter(db *DB) *Adapter {
-	return &Adapter{db}
-}
-
-func NewDB(dsn string) (*DB, error) {
+func NewAdapter(dsn string) (*Adapter, error) {
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		FullSaveAssociations: false,
 		// Logger:                 nil,
@@ -34,7 +26,7 @@ func NewDB(dsn string) (*DB, error) {
 		return nil, fmt.Errorf("open gorm connection pool: %w", err)
 	}
 
-	return &DB{db}, nil
+	return &Adapter{db: db}, nil
 }
 
 func (a *Adapter) InsertProduct(ctx context.Context, domainProduct *domain.Product) (*domain.Product, error) {

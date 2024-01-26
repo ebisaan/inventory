@@ -18,7 +18,7 @@ type Product struct {
 	Image       string
 
 	DiscountPrice float64 `gorm:"check:discount_price >= 0"`
-	ActualPrice   float64 `gorm:"notnull;check:actual_price > 0"`
+	ActualPrice   float64 `gorm:"notnull;check:actual_price >= 0"`
 
 	SubCategoryID int64 `gorm:"notnull"`
 	SubCategory   SubCategory

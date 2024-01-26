@@ -1,5 +1,10 @@
 package domain
 
+const (
+	DefaultPageSize = 50
+	MaxPageSize     = 100
+)
+
 type Filter struct {
 	Page     int
 	PageSize int

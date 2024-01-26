@@ -14,7 +14,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/ebisaan/inventory/internal/application/core/domain"
-	port "github.com/ebisaan/inventory/internal/application/ports"
+	port "github.com/ebisaan/inventory/internal/application/port"
 )
 
 type DatabaseTestSuite struct {
@@ -132,12 +132,10 @@ func (s *DatabaseTestSuite) setupProducts() {
 func (s *DatabaseTestSuite) setupAdapter() {
 	ctx := context.Background()
 
-	db, err := NewDB(s.dsn)
+	postgresDB, err := NewAdapter(s.dsn)
 	if err != nil {
-		s.T().Fatalf("create new postgres connection pool: %s", err)
+		s.T().Fatalf("create new postgres adapter: %s", err)
 	}
-
-	postgresDB := NewProductAdapter(db)
 
 	err = postgresDB.AutoMigration(ctx)
 	if err != nil {

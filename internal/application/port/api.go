@@ -8,5 +8,5 @@ import (
 
 type API interface {
 	GetProductByID(ctx context.Context, id int64) (*domain.Product, error)
-	GetAllProducts(ctx context.Context) ([]*domain.Product, error)
+	GetProducts(ctx context.Context, filter domain.Filter) ([]*domain.Product, domain.Metadata, error)
 }
