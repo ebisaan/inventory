@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -15,7 +16,13 @@ type Adapter struct {
 	db *gorm.DB
 }
 
-func NewAdapter(dsn string) (*Adapter, error) {
+type Config struct {
+	MaxOpenConns int           `yaml:"max_open_conns"`
+	MaxIdleConns int           `yaml:"max_idle_conns"`
+	MaxIdleTime  time.Duration `yaml:"max_idle_time"`
+}
+
+func NewAdapter(dsn string, cfg ...Config) (*Adapter, error) {
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		FullSaveAssociations: false,
 		// Logger:                 nil,
@@ -24,6 +31,18 @@ func NewAdapter(dsn string) (*Adapter, error) {
 	})
 	if err != nil {
 		return nil, fmt.Errorf("open gorm connection pool: %w", err)
+	}
+
+	if len(cfg) > 0 {
+		cfg := cfg[0]
+		sqlDB, err := db.DB()
+		if err != nil {
+			return nil, fmt.Errorf("get *sql.DB: %w", err)
+		}
+
+		sqlDB.SetMaxIdleConns(cfg.MaxIdleConns)
+		sqlDB.SetMaxOpenConns(cfg.MaxOpenConns)
+		sqlDB.SetConnMaxIdleTime(cfg.MaxIdleTime)
 	}
 
 	return &Adapter{db: db}, nil

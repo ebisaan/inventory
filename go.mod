@@ -3,6 +3,7 @@ module github.com/ebisaan/inventory
 go 1.21.5
 
 require (
+	github.com/creasty/defaults v1.7.0
 	github.com/docker/go-connections v0.4.0
 	github.com/ebisaan/proto/golang/inventory v0.1.0
 	github.com/goccy/go-yaml v1.11.3
