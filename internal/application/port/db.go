@@ -7,10 +7,6 @@ import (
 )
 
 type DB interface {
-	ProductDB
-}
-
-type ProductDB interface {
 	GetProductByID(ctx context.Context, id int64) (*domain.Product, error)
 	GetProducts(ctx context.Context, filter domain.Filter) (int64, []*domain.Product, error)
 }

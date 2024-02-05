@@ -6,6 +6,3 @@ all: true # generate all interface
 dir: "internal/mocks/{{.PackageName}}"
 packages:
   github.com/ebisaan/inventory/internal/application/port:
-    config:
-    interfaces:
-      DBPort:
