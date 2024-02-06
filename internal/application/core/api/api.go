@@ -46,6 +46,31 @@ func (a *Application) CreateProduct(ctx context.Context, product *domain.Product
 		return 0, err
 	}
 
+	found, err := a.db.IsSubCategoryExists(ctx, product.SubCategory)
+	if err != nil {
+		return 0, fmt.Errorf("is subcategory exists: %w", err)
+	}
+	if !found {
+		return 0, domain.ValidationError{
+			FieldErrorMessages: map[string]string{
+				"Subcategory": "not exists",
+			},
+		}
+	}
+
+	found, err = a.db.IsCurrencyCodeExists(ctx, product.CurrencyCode)
+	if err != nil {
+		return 0, fmt.Errorf("is currency code exists: %w", err)
+	}
+
+	if !found {
+		return 0, domain.ValidationError{
+			FieldErrorMessages: map[string]string{
+				"Subcategory": "not exists",
+			},
+		}
+	}
+
 	id, err = a.db.CreateProduct(ctx, product)
 	if err != nil {
 		return 0, fmt.Errorf("create product: %w", err)

@@ -49,7 +49,7 @@ func main() {
 
 	app, err := api.NewApplication(db)
 	if err != nil {
-		zap.L().Fatal("failed to create application" + err.Error())
+		zap.L().Fatal("failed to create application adapter" + err.Error())
 	}
 
 	grpc := grpc.NewAdapter(app, grpc.Config{

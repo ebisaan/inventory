@@ -59,7 +59,7 @@ func (v *validate) ValidateStruct(s any) error {
 		returnErr := domain.ValidationError{}
 		var ve pg_validator.ValidationErrors
 		if errors.As(err, &ve) {
-			returnErr.ValidationErrorTranslations = ve.Translate(v.trans)
+			returnErr.FieldErrorMessages = ve.Translate(v.trans)
 			return returnErr
 		} else {
 			return err

@@ -98,32 +98,69 @@ func (a *Adapter) CreateProduct(ctx context.Context, dp *domain.Product) (id int
 
 	product := insertedProduct(dp)
 
-	err = db.Model(&product.SubCategory).Select("id").Where("name = ?", product.SubCategory.Name).Scan(&product.SubCategory.ID).Error
-	if err != nil {
-		switch {
-		case errors.Is(err, gorm.ErrRecordNotFound):
-			return 0, domain.ErrAssociationNotFound
-		default:
-			return 0, fmt.Errorf("select subcategory: %w", err)
+	err = db.Transaction(func(tx *gorm.DB) error {
+		err = tx.Model(&product.SubCategory).Select("id").Where("name = ?", product.SubCategory.Name).First(&product.SubCategory.ID).Error
+		if err != nil {
+			switch {
+			case errors.Is(err, gorm.ErrRecordNotFound):
+				return domain.ErrAssociationNotFound
+			default:
+				return fmt.Errorf("select subcategory: %w", err)
+			}
 		}
-	}
 
-	err = db.Model(&product.Currency).Select("id").Where("code = ?", product.Currency.Code).Scan(&product.Currency.ID).Error
-	if err != nil {
-		switch {
-		case errors.Is(err, gorm.ErrRecordNotFound):
-			return 0, domain.ErrAssociationNotFound
-		default:
-			return 0, fmt.Errorf("select currency: %w", err)
+		err = tx.Model(&product.Currency).Select("id").Where("code = ?", product.Currency.Code).First(&product.Currency.ID).Error
+		if err != nil {
+			switch {
+			case errors.Is(err, gorm.ErrRecordNotFound):
+				return domain.ErrAssociationNotFound
+			default:
+				return fmt.Errorf("select currency: %w", err)
+			}
 		}
-	}
 
-	err = db.Create(&product).Error
+		err = tx.Create(&product).Error
+		if err != nil {
+			return fmt.Errorf("insert product: %w", err)
+		}
+
+		return nil
+	})
 	if err != nil {
-		return 0, fmt.Errorf("insert product: %w", err)
+		return 0, err
 	}
 
 	return product.ID, nil
+}
+
+func (a *Adapter) IsSubCategoryExists(ctx context.Context, name string) (bool, error) {
+	var found bool
+	err := a.db.
+		Model(&SubCategory{}).
+		Select("count(*) > 0").
+		Where("name = ?", name).
+		Take(&found).
+		Error
+	if err != nil {
+		return false, err
+	}
+
+	return found, nil
+}
+
+func (a *Adapter) IsCurrencyCodeExists(ctx context.Context, code string) (bool, error) {
+	var found bool
+	err := a.db.
+		Model(&Currency{}).
+		Select("count(*) > 0").
+		Where("code = ?", code).
+		Take(&found).
+		Error
+	if err != nil {
+		return false, err
+	}
+
+	return found, nil
 }
 
 func (a *Adapter) AutoMigration(ctx context.Context) error {
