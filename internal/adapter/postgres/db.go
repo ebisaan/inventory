@@ -93,6 +93,39 @@ func (a *Adapter) GetProducts(ctx context.Context, filter domain.Filter) (int64,
 	return total, domainProducts(products), nil
 }
 
+func (a *Adapter) CreateProduct(ctx context.Context, dp *domain.Product) (id int64, err error) {
+	db := a.db.WithContext(ctx)
+
+	product := insertedProduct(dp)
+
+	err = db.Model(&product.SubCategory).Select("id").Where("name = ?", product.SubCategory.Name).Scan(&product.SubCategory.ID).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return 0, domain.ErrAssociationNotFound
+		default:
+			return 0, fmt.Errorf("select subcategory: %w", err)
+		}
+	}
+
+	err = db.Model(&product.Currency).Select("id").Where("code = ?", product.Currency.Code).Scan(&product.Currency.ID).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return 0, domain.ErrAssociationNotFound
+		default:
+			return 0, fmt.Errorf("select currency: %w", err)
+		}
+	}
+
+	err = db.Create(&product).Error
+	if err != nil {
+		return 0, fmt.Errorf("insert product: %w", err)
+	}
+
+	return product.ID, nil
+}
+
 func (a *Adapter) AutoMigration(ctx context.Context) error {
 	db := a.db.WithContext(ctx)
 	err := db.AutoMigrate(&Currency{}, &MainCategory{}, &SubCategory{}, &Product{})

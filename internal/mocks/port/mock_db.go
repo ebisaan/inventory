@@ -22,6 +22,63 @@ func (_m *MockDB) EXPECT() *MockDB_Expecter {
 	return &MockDB_Expecter{mock: &_m.Mock}
 }
 
+// CreateProduct provides a mock function with given fields: ctx, dp
+func (_m *MockDB) CreateProduct(ctx context.Context, dp *domain.Product) (int64, error) {
+	ret := _m.Called(ctx, dp)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateProduct")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.Product) (int64, error)); ok {
+		return rf(ctx, dp)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.Product) int64); ok {
+		r0 = rf(ctx, dp)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *domain.Product) error); ok {
+		r1 = rf(ctx, dp)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockDB_CreateProduct_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateProduct'
+type MockDB_CreateProduct_Call struct {
+	*mock.Call
+}
+
+// CreateProduct is a helper method to define mock.On call
+//   - ctx context.Context
+//   - dp *domain.Product
+func (_e *MockDB_Expecter) CreateProduct(ctx interface{}, dp interface{}) *MockDB_CreateProduct_Call {
+	return &MockDB_CreateProduct_Call{Call: _e.mock.On("CreateProduct", ctx, dp)}
+}
+
+func (_c *MockDB_CreateProduct_Call) Run(run func(ctx context.Context, dp *domain.Product)) *MockDB_CreateProduct_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*domain.Product))
+	})
+	return _c
+}
+
+func (_c *MockDB_CreateProduct_Call) Return(id int64, err error) *MockDB_CreateProduct_Call {
+	_c.Call.Return(id, err)
+	return _c
+}
+
+func (_c *MockDB_CreateProduct_Call) RunAndReturn(run func(context.Context, *domain.Product) (int64, error)) *MockDB_CreateProduct_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetProductByID provides a mock function with given fields: ctx, id
 func (_m *MockDB) GetProductByID(ctx context.Context, id int64) (*domain.Product, error) {
 	ret := _m.Called(ctx, id)

@@ -1,4 +1,4 @@
-package app
+package api
 
 import (
 	"context"
@@ -10,12 +10,18 @@ import (
 
 type Application struct {
 	db port.DB
+	v  *validate
 }
 
-func NewApplication(db port.DB) *Application {
+func NewApplication(db port.DB) (*Application, error) {
+	v, err := newValidate("json")
+	if err != nil {
+		return nil, err
+	}
 	return &Application{
 		db: db,
-	}
+		v:  v,
+	}, nil
 }
 
 func (a *Application) GetProductByID(ctx context.Context, id int64) (*domain.Product, error) {
@@ -23,15 +29,7 @@ func (a *Application) GetProductByID(ctx context.Context, id int64) (*domain.Pro
 }
 
 func (a *Application) GetProducts(ctx context.Context, filter domain.Filter) ([]*domain.Product, domain.Metadata, error) {
-	if filter.PageSize == 0 {
-		filter.PageSize = domain.DefaultPageSize
-	}
-	if filter.PageSize > domain.MaxPageSize {
-		filter.PageSize = domain.MaxPageSize
-	}
-	if filter.Page == 0 {
-		filter.Page = 1
-	}
+	filter = domain.ProcessFilter(filter)
 	n, products, err := a.db.GetProducts(ctx, filter)
 	if err != nil {
 		return nil, domain.Metadata{}, fmt.Errorf("get products from db: %w", err)
@@ -40,4 +38,18 @@ func (a *Application) GetProducts(ctx context.Context, filter domain.Filter) ([]
 	metadata := domain.MakeMetadata(n, filter.Page, filter.PageSize)
 
 	return products, metadata, nil
+}
+
+func (a *Application) CreateProduct(ctx context.Context, product *domain.Product) (id int64, err error) {
+	err = a.v.ValidateStruct(product)
+	if err != nil {
+		return 0, err
+	}
+
+	id, err = a.db.CreateProduct(ctx, product)
+	if err != nil {
+		return 0, fmt.Errorf("create product: %w", err)
+	}
+
+	return id, nil
 }

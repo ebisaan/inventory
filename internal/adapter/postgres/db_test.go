@@ -42,7 +42,7 @@ func (s *DatabaseTestSuite) TestGetProducts() {
 	s.Run("get all products", func() {
 		n, products, err := s.db.GetProducts(context.Background(), domain.Filter{
 			Page:     1,
-			PageSize: 2,
+			PageSize: domain.DefaultPageSize,
 		})
 		if err != nil {
 			s.T().Fatal(err)
@@ -76,10 +76,46 @@ func (s *DatabaseTestSuite) TestGetProducts() {
 	})
 }
 
+func (s *DatabaseTestSuite) TestCreateProduct() {
+	want := &domain.Product{
+		Name:          "Superman",
+		SubCategory:   "Toys & Games",
+		StockNumber:   100,
+		Image:         "image.com/123",
+		DiscountPrice: 0,
+		ActualPrice:   10,
+		CurrencyCode:  "VND",
+	}
+
+	ctx := context.Background()
+	id, err := s.db.CreateProduct(ctx, want)
+	s.Require().NoError(err)
+
+	db := s.getGormDB()
+
+	var product Product
+	err = db.First(&product, id).Error
+	s.Require().NoError(err)
+	s.Assert().NotNil(product)
+
+	err = db.Delete(&product).Error
+	s.Require().NoError(err)
+}
+
 func (s *DatabaseTestSuite) SetupSuite() {
 	s.setupContainer()
 	s.setupAdapter()
 	s.setupProducts()
+}
+
+func (s *DatabaseTestSuite) getGormDB() *gorm.DB {
+	s.T().Helper()
+	db, err := gorm.Open(progresDriver.Open(s.dsn), &gorm.Config{})
+	if err != nil {
+		s.T().Fatalf("open gorm connection pool: %s", err)
+	}
+
+	return db
 }
 
 func (s *DatabaseTestSuite) setupProducts() {

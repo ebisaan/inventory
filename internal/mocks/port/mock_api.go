@@ -22,6 +22,63 @@ func (_m *MockAPI) EXPECT() *MockAPI_Expecter {
 	return &MockAPI_Expecter{mock: &_m.Mock}
 }
 
+// CreateProduct provides a mock function with given fields: ctx, product
+func (_m *MockAPI) CreateProduct(ctx context.Context, product *domain.Product) (int64, error) {
+	ret := _m.Called(ctx, product)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateProduct")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.Product) (int64, error)); ok {
+		return rf(ctx, product)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.Product) int64); ok {
+		r0 = rf(ctx, product)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *domain.Product) error); ok {
+		r1 = rf(ctx, product)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockAPI_CreateProduct_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateProduct'
+type MockAPI_CreateProduct_Call struct {
+	*mock.Call
+}
+
+// CreateProduct is a helper method to define mock.On call
+//   - ctx context.Context
+//   - product *domain.Product
+func (_e *MockAPI_Expecter) CreateProduct(ctx interface{}, product interface{}) *MockAPI_CreateProduct_Call {
+	return &MockAPI_CreateProduct_Call{Call: _e.mock.On("CreateProduct", ctx, product)}
+}
+
+func (_c *MockAPI_CreateProduct_Call) Run(run func(ctx context.Context, product *domain.Product)) *MockAPI_CreateProduct_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*domain.Product))
+	})
+	return _c
+}
+
+func (_c *MockAPI_CreateProduct_Call) Return(id int64, err error) *MockAPI_CreateProduct_Call {
+	_c.Call.Return(id, err)
+	return _c
+}
+
+func (_c *MockAPI_CreateProduct_Call) RunAndReturn(run func(context.Context, *domain.Product) (int64, error)) *MockAPI_CreateProduct_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetProductByID provides a mock function with given fields: ctx, id
 func (_m *MockAPI) GetProductByID(ctx context.Context, id int64) (*domain.Product, error) {
 	ret := _m.Called(ctx, id)
