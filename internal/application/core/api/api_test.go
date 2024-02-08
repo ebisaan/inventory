@@ -118,7 +118,7 @@ func TestApplication_GetProducts(t *testing.T) {
 
 func TestApplication_CreateProduct(t *testing.T) {
 	db := mock_port.NewMockDB(t)
-	product := &domain.Product{
+	product := &domain.CreateProductRequest{
 		Name:          "Songoku",
 		SubCategory:   "toys & baby products",
 		StockNumber:   10,
@@ -143,7 +143,7 @@ func TestApplication_CreateProduct(t *testing.T) {
 
 func TestApplication_CreateProduct_FailedValidation(t *testing.T) {
 	db := mock_port.NewMockDB(t)
-	product := &domain.Product{
+	product := &domain.CreateProductRequest{
 		Name:          "",
 		SubCategory:   "",
 		StockNumber:   -1,
@@ -166,4 +166,53 @@ func TestApplication_CreateProduct_FailedValidation(t *testing.T) {
 	require.True(t, ok)
 
 	assert.Len(t, validationErr.FieldErrorMessages, 7)
+}
+
+func TestApplication_UpdateProduct(t *testing.T) {
+	db := mock_port.NewMockDB(t)
+	product := &domain.UpdateProductRequest{
+		Name:          "Songoku",
+		SubCategory:   "toys & baby products",
+		StockNumber:   10,
+		Image:         "",
+		DiscountPrice: 0,
+		ActualPrice:   50000,
+		CurrencyCode:  "VND",
+		Version:       1,
+	}
+	var id int64 = 1
+	db.EXPECT().UpdateProduct(mock.Anything, id, product).Return(nil)
+
+	var app port.API
+	app, err := api.NewApplication(db)
+	require.NoError(t, err)
+
+	err = app.UpdateProduct(context.Background(), id, product)
+	require.NoError(t, err)
+}
+
+func TestApplication_UpdateProduct_FailedValidation(t *testing.T) {
+	db := mock_port.NewMockDB(t)
+	product := &domain.UpdateProductRequest{
+		StockNumber:   -1,
+		Image:         "%notexists$",
+		DiscountPrice: -1,
+		ActualPrice:   -1,
+		CurrencyCode:  "GAY",
+		Version:       -1,
+	}
+
+	var app port.API
+	app, err := api.NewApplication(db)
+	require.NoError(t, err)
+
+	err = app.UpdateProduct(context.Background(), 1, product)
+	require.Error(t, err)
+
+	var validationErr domain.ValidationError
+
+	ok := errors.As(err, &validationErr)
+	require.True(t, ok)
+
+	assert.Len(t, validationErr.FieldErrorMessages, 6)
 }

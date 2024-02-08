@@ -8,6 +8,8 @@ import (
 	port "github.com/ebisaan/inventory/internal/application/port"
 )
 
+var _ port.API = (*Application)(nil)
+
 type Application struct {
 	db port.DB
 	v  *validate
@@ -40,7 +42,7 @@ func (a *Application) GetProducts(ctx context.Context, filter domain.Filter) ([]
 	return products, metadata, nil
 }
 
-func (a *Application) CreateProduct(ctx context.Context, product *domain.Product) (id int64, err error) {
+func (a *Application) CreateProduct(ctx context.Context, product *domain.CreateProductRequest) (id int64, err error) {
 	err = a.v.ValidateStruct(product)
 	if err != nil {
 		return 0, err
@@ -77,4 +79,14 @@ func (a *Application) CreateProduct(ctx context.Context, product *domain.Product
 	}
 
 	return id, nil
+}
+
+func (a *Application) UpdateProduct(ctx context.Context, id int64, req *domain.UpdateProductRequest) error {
+	err := a.v.ValidateStruct(req)
+	if err != nil {
+		return err
+	}
+
+	err = a.db.UpdateProduct(ctx, id, req)
+	return err
 }

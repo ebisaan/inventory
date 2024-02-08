@@ -25,5 +25,6 @@ func domainProduct(model *Product) *domain.Product {
 		ActualPrice:    model.ActualPrice,
 		CurrencyCode:   model.Currency.Code,
 		CurrencySymbol: model.Currency.Symbol,
+		Version:        model.Version,
 	}
 }

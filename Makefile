@@ -12,6 +12,7 @@ help:
 ## run/inventory
 .PHONY: run/inventory
 run/inventory:
+	go mod tidy
 	go run ./cmd/inventory
 
 ## run/automigrate

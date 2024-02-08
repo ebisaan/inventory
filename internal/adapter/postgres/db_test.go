@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 	progresDriver "gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/ebisaan/inventory/internal/application/core/domain"
 	port "github.com/ebisaan/inventory/internal/application/port"
@@ -19,10 +21,11 @@ import (
 
 type DatabaseTestSuite struct {
 	suite.Suite
-	db        port.DB
-	container testcontainers.Container
-	dsn       string
-	products  []*domain.Product
+	db             port.DB
+	container      testcontainers.Container
+	dsn            string
+	domainProducts []*domain.Product
+	products       []*Product
 }
 
 func TestDB(t *testing.T) {
@@ -30,12 +33,18 @@ func TestDB(t *testing.T) {
 }
 
 func (s *DatabaseTestSuite) TestGetProductByID() {
-	p, err := s.db.GetProductByID(context.Background(), s.products[0].ID)
-	if err != nil {
-		s.T().Fatal(err)
-	}
+	p, err := s.db.GetProductByID(context.Background(), s.domainProducts[0].ID)
+	s.Require().NoError(err)
 
-	s.Suite.Assert().Equal(s.products[0], p)
+	s.Suite.Assert().Equal(s.domainProducts[0], p)
+}
+
+func (s *DatabaseTestSuite) TestGetProductByID_NotFound() {
+	_, err := s.db.GetProductByID(context.Background(), s.domainProducts[len(s.domainProducts)-1].ID+1)
+	s.Require().Error(err)
+	if !errors.Is(err, domain.ErrNotFound) {
+		s.T().Errorf("got error %q, want %q", err, domain.ErrNotFound)
+	}
 }
 
 func (s *DatabaseTestSuite) TestGetProducts() {
@@ -48,7 +57,7 @@ func (s *DatabaseTestSuite) TestGetProducts() {
 			s.T().Fatal(err)
 		}
 
-		s.Suite.Assert().Equal(s.products, products)
+		s.Suite.Assert().Equal(s.domainProducts, products)
 		s.Suite.Assert().Equal(int64(2), n)
 	})
 
@@ -60,7 +69,7 @@ func (s *DatabaseTestSuite) TestGetProducts() {
 		if err != nil {
 			s.T().Fatal(err)
 		}
-		s.Suite.Assert().Equal([]*domain.Product{s.products[0]}, products)
+		s.Suite.Assert().Equal([]*domain.Product{s.domainProducts[0]}, products)
 		s.Suite.Assert().Equal(int64(2), n)
 
 		n, products, err = s.db.GetProducts(context.Background(), domain.Filter{
@@ -71,13 +80,24 @@ func (s *DatabaseTestSuite) TestGetProducts() {
 			s.T().Fatal(err)
 		}
 
-		s.Suite.Assert().Equal([]*domain.Product{s.products[1]}, products)
+		s.Suite.Assert().Equal([]*domain.Product{s.domainProducts[1]}, products)
+		s.Suite.Assert().Equal(int64(2), n)
+
+		n, products, err = s.db.GetProducts(context.Background(), domain.Filter{
+			Page:     3,
+			PageSize: 1,
+		})
+		if err != nil {
+			s.T().Fatal(err)
+		}
+
+		s.Suite.Assert().Equal([]*domain.Product{}, products)
 		s.Suite.Assert().Equal(int64(2), n)
 	})
 }
 
 func (s *DatabaseTestSuite) TestCreateProduct() {
-	want := &domain.Product{
+	createRequest := &domain.CreateProductRequest{
 		Name:          "Superman",
 		SubCategory:   "Toys & Games",
 		StockNumber:   100,
@@ -88,17 +108,112 @@ func (s *DatabaseTestSuite) TestCreateProduct() {
 	}
 
 	ctx := context.Background()
-	id, err := s.db.CreateProduct(ctx, want)
+	id, err := s.db.CreateProduct(ctx, createRequest)
 	s.Require().NoError(err)
 
 	db := s.getGormDB()
 
-	var product Product
-	err = db.First(&product, id).Error
+	var gotProduct Product
+	err = db.Preload(clause.Associations).First(&gotProduct, id).Error
 	s.Require().NoError(err)
-	s.Assert().NotNil(product)
+	s.Assert().NotNil(gotProduct)
+	s.Assert().Equal(createRequest.Name, gotProduct.Name)
+	s.Assert().Equal(createRequest.SubCategory, gotProduct.SubCategory.Name)
+	s.Assert().Equal(createRequest.CurrencyCode, gotProduct.Currency.Code)
+	s.Assert().Equal(createRequest.StockNumber, gotProduct.StockNumber)
+	s.Assert().Equal(createRequest.Image, gotProduct.Image)
+	s.Assert().Equal(createRequest.DiscountPrice, gotProduct.DiscountPrice)
+	s.Assert().Equal(createRequest.ActualPrice, gotProduct.ActualPrice)
+	s.Assert().Equal(int64(1), gotProduct.Version)
 
-	err = db.Delete(&product).Error
+	err = db.Delete(&gotProduct).Error
+	s.Require().NoError(err)
+}
+
+func (s *DatabaseTestSuite) TestUpdateProduct() {
+	p := Product{
+		Name:          "Superman",
+		SubCategory:   s.products[0].SubCategory,
+		Currency:      s.products[0].Currency,
+		StockNumber:   100,
+		Image:         "image.com/123",
+		DiscountPrice: 0,
+		ActualPrice:   10,
+		Version:       1,
+	}
+
+	db := s.getGormDB()
+
+	err := db.Save(&p).Error
+	s.Require().NoError(err)
+	s.Assert().NotEmpty(p.ID)
+
+	updateRequest := &domain.UpdateProductRequest{
+		Name:          "Fake Superman",
+		SubCategory:   s.products[1].SubCategory.Name,
+		CurrencyCode:  s.products[1].Currency.Code,
+		StockNumber:   10,
+		Image:         "image.com/456",
+		DiscountPrice: 10,
+		ActualPrice:   100,
+		Version:       1,
+	}
+
+	err = s.db.UpdateProduct(context.Background(), p.ID, updateRequest)
+	s.Require().NoError(err)
+
+	gotProduct := &Product{}
+	err = db.Preload(clause.Associations).First(&gotProduct, p.ID).Error
+	s.Require().NoError(err)
+
+	s.Assert().Equal(updateRequest.Name, gotProduct.Name)
+	s.Assert().Equal(updateRequest.SubCategory, gotProduct.SubCategory.Name)
+	s.Assert().Equal(updateRequest.CurrencyCode, gotProduct.Currency.Code)
+	s.Assert().Equal(updateRequest.StockNumber, gotProduct.StockNumber)
+	s.Assert().Equal(updateRequest.Image, gotProduct.Image)
+	s.Assert().Equal(updateRequest.DiscountPrice, gotProduct.DiscountPrice)
+	s.Assert().Equal(updateRequest.ActualPrice, gotProduct.ActualPrice)
+	s.Assert().Equal(updateRequest.Version+1, gotProduct.Version)
+	err = db.Delete(&Product{}, p.ID).Error
+	s.Require().NoError(err)
+}
+
+func (s *DatabaseTestSuite) TestUpdateProduct_Conflict() {
+	p := Product{
+		Name:          "Superman",
+		SubCategory:   s.products[0].SubCategory,
+		Currency:      s.products[0].Currency,
+		StockNumber:   100,
+		Image:         "image.com/123",
+		DiscountPrice: 0,
+		ActualPrice:   10,
+		Version:       2,
+	}
+
+	db := s.getGormDB()
+
+	err := db.Save(&p).Error
+	s.Require().NoError(err)
+	s.Assert().NotEmpty(p.ID)
+
+	updateRequest := &domain.UpdateProductRequest{
+		Name:          "Fake Superman",
+		SubCategory:   s.products[1].SubCategory.Name,
+		CurrencyCode:  s.products[1].Currency.Code,
+		StockNumber:   10,
+		Image:         "image.com/456",
+		DiscountPrice: 10,
+		ActualPrice:   100,
+		Version:       1,
+	}
+
+	err = s.db.UpdateProduct(context.Background(), p.ID, updateRequest)
+	s.Require().Error(err)
+	if !errors.Is(err, domain.ErrEditConflict) {
+		s.T().Errorf("got error %q, want %q", err, domain.ErrEditConflict)
+	}
+
+	err = db.Delete(&Product{}, p.ID).Error
 	s.Require().NoError(err)
 }
 
@@ -162,7 +277,8 @@ func (s *DatabaseTestSuite) setupProducts() {
 		s.T().Fatalf("create products: %s", err)
 	}
 
-	s.products = domainProducts(products)
+	s.domainProducts = domainProducts(products)
+	s.products = products
 }
 
 func (s *DatabaseTestSuite) setupAdapter() {

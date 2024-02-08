@@ -58,7 +58,7 @@ func (a *Adapter) GetProducts(ctx context.Context, req *inventoryv1.GetProductsR
 }
 
 func (a *Adapter) CreateProduct(ctx context.Context, req *inventoryv1.CreateProductRequest) (*inventoryv1.CreateProductResponse, error) {
-	id, err := a.app.CreateProduct(ctx, domainProduct(req))
+	id, err := a.app.CreateProduct(ctx, createdDomainProduct(req))
 	if err != nil {
 		validationErr := &domain.ValidationError{}
 		switch {
@@ -77,6 +77,29 @@ func (a *Adapter) CreateProduct(ctx context.Context, req *inventoryv1.CreateProd
 	return &inventoryv1.CreateProductResponse{
 		Id: id,
 	}, nil
+}
+
+func (a *Adapter) UpdateProduct(ctx context.Context, req *inventoryv1.UpdateProductRequest) (*inventoryv1.UpdateProductResponse, error) {
+	err := a.app.UpdateProduct(ctx, req.Id, updatedDomainProduct(req))
+	if err != nil {
+		validationErr := &domain.ValidationError{}
+		switch {
+		case errors.As(err, validationErr):
+			return nil, validationErrorToStatusError(validationErr)
+		case errors.Is(err, domain.ErrEditConflict):
+			st := status.New(codes.FailedPrecondition, domain.ErrEditConflict.Error())
+			return nil, st.Err()
+		case errors.Is(err, domain.ErrAssociationNotFound):
+			st := status.New(codes.InvalidArgument, domain.ErrAssociationNotFound.Error())
+			return nil, st.Err()
+		default:
+			zap.L().Error(err.Error())
+
+			return nil, status.New(codes.Unknown, "Unknown Error").Err()
+		}
+	}
+
+	return &inventoryv1.UpdateProductResponse{}, nil
 }
 
 func validationErrorToStatusError(validationErr *domain.ValidationError) error {
@@ -105,8 +128,8 @@ func protoProducts(dProducts []*domain.Product) []*inventoryv1.Product {
 	return products
 }
 
-func domainProduct(req *inventoryv1.CreateProductRequest) *domain.Product {
-	return &domain.Product{
+func createdDomainProduct(req *inventoryv1.CreateProductRequest) *domain.CreateProductRequest {
+	return &domain.CreateProductRequest{
 		Name:          req.Name,
 		SubCategory:   req.SubCategory,
 		StockNumber:   int(req.StockNumber),
@@ -114,6 +137,19 @@ func domainProduct(req *inventoryv1.CreateProductRequest) *domain.Product {
 		DiscountPrice: req.DiscountPrice,
 		ActualPrice:   req.ActualPrice,
 		CurrencyCode:  req.CurrencyCode,
+	}
+}
+
+func updatedDomainProduct(req *inventoryv1.UpdateProductRequest) *domain.UpdateProductRequest {
+	return &domain.UpdateProductRequest{
+		Name:          req.Name,
+		SubCategory:   req.SubCategory,
+		StockNumber:   int(req.StockNumber),
+		Image:         req.Image,
+		DiscountPrice: req.DiscountPrice,
+		ActualPrice:   req.ActualPrice,
+		CurrencyCode:  req.CurrencyCode,
+		Version:       req.Version,
 	}
 }
 
