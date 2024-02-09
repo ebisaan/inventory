@@ -25,6 +25,7 @@ type CreateProductRequest struct {
 }
 
 type UpdateProductRequest struct {
+	ID            int64   `validate:"required"`
 	Name          string  `validate:"omitempty"`
 	SubCategory   string  `validate:"omitempty"`
 	StockNumber   int     `validate:"gte=0"`
@@ -33,4 +34,9 @@ type UpdateProductRequest struct {
 	ActualPrice   float64 `validate:"required,gt=0"`
 	CurrencyCode  string  `validate:"omitempty,iso4217"`
 	Version       int64   `validate:"gte=1"`
+}
+
+type DeleteProductRequest struct {
+	ID      int64 `validate:"required"`
+	Version int64 `validate:"gte=1"`
 }

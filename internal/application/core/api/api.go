@@ -81,12 +81,22 @@ func (a *Application) CreateProduct(ctx context.Context, product *domain.CreateP
 	return id, nil
 }
 
-func (a *Application) UpdateProduct(ctx context.Context, id int64, req *domain.UpdateProductRequest) error {
+func (a *Application) UpdateProduct(ctx context.Context, req *domain.UpdateProductRequest) error {
 	err := a.v.ValidateStruct(req)
 	if err != nil {
 		return err
 	}
 
-	err = a.db.UpdateProduct(ctx, id, req)
+	err = a.db.UpdateProduct(ctx, req)
+	return err
+}
+
+func (a *Application) DeleteProduct(ctx context.Context, req *domain.DeleteProductRequest) error {
+	err := a.v.ValidateStruct(req)
+	if err != nil {
+		return err
+	}
+
+	err = a.db.DeleteProduct(ctx, req)
 	return err
 }

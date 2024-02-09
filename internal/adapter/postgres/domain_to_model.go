@@ -20,6 +20,9 @@ func insertedProduct(dm *domain.CreateProductRequest) *Product {
 
 func updatedProduct(dm *domain.UpdateProductRequest) *Product {
 	return &Product{
+		BaseModel: BaseModel{
+			ID: dm.ID,
+		},
 		Name:          dm.Name,
 		StockNumber:   dm.StockNumber,
 		Image:         dm.Image,

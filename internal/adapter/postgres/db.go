@@ -136,11 +136,10 @@ func (a *Adapter) CreateProduct(ctx context.Context, dp *domain.CreateProductReq
 	return p.ID, nil
 }
 
-func (a *Adapter) UpdateProduct(ctx context.Context, id int64, dp *domain.UpdateProductRequest) (err error) {
+func (a *Adapter) UpdateProduct(ctx context.Context, dp *domain.UpdateProductRequest) (err error) {
 	db := a.db.WithContext(ctx)
 
 	p := updatedProduct(dp)
-	p.ID = id
 	curVersion := p.Version
 	p.Version += 1
 
@@ -170,9 +169,29 @@ func (a *Adapter) UpdateProduct(ctx context.Context, id int64, dp *domain.Update
 	}
 	p.CurrencyID = crcID
 
-	res := tx.Omit(clause.Associations).Where("id = ?", id).Where("version = ?", curVersion).Updates(&p)
+	res := tx.Omit(clause.Associations).Where("id = ?", p.ID).Where("version = ?", curVersion).Updates(&p)
 	if err := res.Error; err != nil {
-		return fmt.Errorf("select product by id=%d: %w", id, err)
+		return fmt.Errorf("select product by id=%d: %w", p.ID, err)
+	}
+
+	if res.RowsAffected == 0 {
+		return domain.ErrEditConflict
+	}
+
+	return nil
+}
+
+func (a *Adapter) DeleteProduct(ctx context.Context, req *domain.DeleteProductRequest) error {
+	db := a.db.WithContext(ctx)
+
+	res := db.Where("id = ?", req.ID).Where("version = ?", req.Version).Delete(&Product{})
+	if err := res.Error; err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return domain.ErrEditConflict
+		default:
+			return err
+		}
 	}
 
 	if res.RowsAffected == 0 {

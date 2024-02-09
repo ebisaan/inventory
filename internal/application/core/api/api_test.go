@@ -170,7 +170,8 @@ func TestApplication_CreateProduct_FailedValidation(t *testing.T) {
 
 func TestApplication_UpdateProduct(t *testing.T) {
 	db := mock_port.NewMockDB(t)
-	product := &domain.UpdateProductRequest{
+	req := &domain.UpdateProductRequest{
+		ID:            1,
 		Name:          "Songoku",
 		SubCategory:   "toys & baby products",
 		StockNumber:   10,
@@ -180,20 +181,20 @@ func TestApplication_UpdateProduct(t *testing.T) {
 		CurrencyCode:  "VND",
 		Version:       1,
 	}
-	var id int64 = 1
-	db.EXPECT().UpdateProduct(mock.Anything, id, product).Return(nil)
+	db.EXPECT().UpdateProduct(mock.Anything, req).Return(nil)
 
 	var app port.API
 	app, err := api.NewApplication(db)
 	require.NoError(t, err)
 
-	err = app.UpdateProduct(context.Background(), id, product)
+	err = app.UpdateProduct(context.Background(), req)
 	require.NoError(t, err)
 }
 
 func TestApplication_UpdateProduct_FailedValidation(t *testing.T) {
 	db := mock_port.NewMockDB(t)
-	product := &domain.UpdateProductRequest{
+	req := &domain.UpdateProductRequest{
+		ID:            1,
 		StockNumber:   -1,
 		Image:         "%notexists$",
 		DiscountPrice: -1,
@@ -206,7 +207,7 @@ func TestApplication_UpdateProduct_FailedValidation(t *testing.T) {
 	app, err := api.NewApplication(db)
 	require.NoError(t, err)
 
-	err = app.UpdateProduct(context.Background(), 1, product)
+	err = app.UpdateProduct(context.Background(), req)
 	require.Error(t, err)
 
 	var validationErr domain.ValidationError
@@ -215,4 +216,40 @@ func TestApplication_UpdateProduct_FailedValidation(t *testing.T) {
 	require.True(t, ok)
 
 	assert.Len(t, validationErr.FieldErrorMessages, 6)
+}
+
+func TestApplication_DeleteProduct(t *testing.T) {
+	db := mock_port.NewMockDB(t)
+	req := &domain.DeleteProductRequest{
+		ID:      1,
+		Version: 1,
+	}
+	db.EXPECT().DeleteProduct(mock.Anything, req).Return(nil)
+
+	var app port.API
+	app, err := api.NewApplication(db)
+	require.NoError(t, err)
+
+	err = app.DeleteProduct(context.Background(), req)
+	require.NoError(t, err)
+}
+
+func TestApplication_DeleteProduct_FailedValidation(t *testing.T) {
+	db := mock_port.NewMockDB(t)
+	req := &domain.DeleteProductRequest{
+		Version: -1,
+	}
+
+	var app port.API
+	app, err := api.NewApplication(db)
+	require.NoError(t, err)
+
+	err = app.DeleteProduct(context.Background(), req)
+	require.Error(t, err)
+
+	var validationErr domain.ValidationError
+	ok := errors.As(err, &validationErr)
+	require.True(t, ok)
+
+	assert.Len(t, validationErr.FieldErrorMessages, 2)
 }

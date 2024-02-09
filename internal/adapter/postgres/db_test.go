@@ -149,6 +149,7 @@ func (s *DatabaseTestSuite) TestUpdateProduct() {
 	s.Assert().NotEmpty(p.ID)
 
 	updateRequest := &domain.UpdateProductRequest{
+		ID:            p.ID,
 		Name:          "Fake Superman",
 		SubCategory:   s.products[1].SubCategory.Name,
 		CurrencyCode:  s.products[1].Currency.Code,
@@ -159,7 +160,7 @@ func (s *DatabaseTestSuite) TestUpdateProduct() {
 		Version:       1,
 	}
 
-	err = s.db.UpdateProduct(context.Background(), p.ID, updateRequest)
+	err = s.db.UpdateProduct(context.Background(), updateRequest)
 	s.Require().NoError(err)
 
 	gotProduct := &Product{}
@@ -197,6 +198,7 @@ func (s *DatabaseTestSuite) TestUpdateProduct_Conflict() {
 	s.Assert().NotEmpty(p.ID)
 
 	updateRequest := &domain.UpdateProductRequest{
+		ID:            p.ID,
 		Name:          "Fake Superman",
 		SubCategory:   s.products[1].SubCategory.Name,
 		CurrencyCode:  s.products[1].Currency.Code,
@@ -207,13 +209,40 @@ func (s *DatabaseTestSuite) TestUpdateProduct_Conflict() {
 		Version:       1,
 	}
 
-	err = s.db.UpdateProduct(context.Background(), p.ID, updateRequest)
+	err = s.db.UpdateProduct(context.Background(), updateRequest)
 	s.Require().Error(err)
 	if !errors.Is(err, domain.ErrEditConflict) {
 		s.T().Errorf("got error %q, want %q", err, domain.ErrEditConflict)
 	}
 
 	err = db.Delete(&Product{}, p.ID).Error
+	s.Require().NoError(err)
+}
+
+func (s *DatabaseTestSuite) TestDeleteProduct() {
+	p := Product{
+		Name:          "Superman",
+		SubCategory:   s.products[0].SubCategory,
+		Currency:      s.products[0].Currency,
+		StockNumber:   100,
+		Image:         "image.com/123",
+		DiscountPrice: 0,
+		ActualPrice:   10,
+		Version:       1,
+	}
+
+	db := s.getGormDB()
+
+	err := db.Save(&p).Error
+	s.Require().NoError(err)
+	s.Assert().NotEmpty(p.ID)
+
+	req := &domain.DeleteProductRequest{
+		ID:      p.ID,
+		Version: p.Version,
+	}
+
+	err = s.db.DeleteProduct(context.Background(), req)
 	s.Require().NoError(err)
 }
 

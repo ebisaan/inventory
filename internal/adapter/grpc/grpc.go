@@ -20,7 +20,7 @@ func (a *Adapter) GetProductByID(ctx context.Context, req *inventoryv1.GetProduc
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrNotFound):
-			return nil, status.New(codes.NotFound, fmt.Sprintf("product with id=%d", req.Id)).Err()
+			return nil, status.New(codes.NotFound, fmt.Sprintf("product with id=%d not found", req.Id)).Err()
 		default:
 			zap.L().Error(err.Error())
 
@@ -80,7 +80,7 @@ func (a *Adapter) CreateProduct(ctx context.Context, req *inventoryv1.CreateProd
 }
 
 func (a *Adapter) UpdateProduct(ctx context.Context, req *inventoryv1.UpdateProductRequest) (*inventoryv1.UpdateProductResponse, error) {
-	err := a.app.UpdateProduct(ctx, req.Id, updatedDomainProduct(req))
+	err := a.app.UpdateProduct(ctx, updatedDomainProduct(req))
 	if err != nil {
 		validationErr := &domain.ValidationError{}
 		switch {
@@ -100,6 +100,26 @@ func (a *Adapter) UpdateProduct(ctx context.Context, req *inventoryv1.UpdateProd
 	}
 
 	return &inventoryv1.UpdateProductResponse{}, nil
+}
+
+func (a *Adapter) DeleteProduct(ctx context.Context, req *inventoryv1.DeleteProductRequest) (*inventoryv1.DeleteProductResponse, error) {
+	err := a.app.DeleteProduct(ctx, deletedDomainProduct(req))
+	if err != nil {
+		validationErr := &domain.ValidationError{}
+		switch {
+		case errors.As(err, validationErr):
+			return nil, validationErrorToStatusError(validationErr)
+		case errors.Is(err, domain.ErrEditConflict):
+			st := status.New(codes.FailedPrecondition, domain.ErrEditConflict.Error())
+			return nil, st.Err()
+		default:
+			zap.L().Error(err.Error())
+
+			return nil, status.New(codes.Unknown, "Unknown Error").Err()
+		}
+	}
+
+	return &inventoryv1.DeleteProductResponse{}, nil
 }
 
 func validationErrorToStatusError(validationErr *domain.ValidationError) error {
@@ -142,6 +162,7 @@ func createdDomainProduct(req *inventoryv1.CreateProductRequest) *domain.CreateP
 
 func updatedDomainProduct(req *inventoryv1.UpdateProductRequest) *domain.UpdateProductRequest {
 	return &domain.UpdateProductRequest{
+		ID:            req.Id,
 		Name:          req.Name,
 		SubCategory:   req.SubCategory,
 		StockNumber:   int(req.StockNumber),
@@ -150,6 +171,13 @@ func updatedDomainProduct(req *inventoryv1.UpdateProductRequest) *domain.UpdateP
 		ActualPrice:   req.ActualPrice,
 		CurrencyCode:  req.CurrencyCode,
 		Version:       req.Version,
+	}
+}
+
+func deletedDomainProduct(req *inventoryv1.DeleteProductRequest) *domain.DeleteProductRequest {
+	return &domain.DeleteProductRequest{
+		ID:      req.Id,
+		Version: req.Version,
 	}
 }
 
@@ -165,5 +193,6 @@ func protoProduct(p *domain.Product) *inventoryv1.Product {
 		ActualPrice:    p.DiscountPrice,
 		CurrencyCode:   p.CurrencyCode,
 		CurrencySymbol: p.CurrencySymbol,
+		Version:        p.Version,
 	}
 }
