@@ -5,7 +5,7 @@ go 1.21.5
 require (
 	github.com/creasty/defaults v1.7.0
 	github.com/docker/go-connections v0.4.0
-	github.com/ebisaan/proto/golang/inventory v0.1.0
+	github.com/ebisaan/proto/golang/inventory v0.2.0
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/go-playground/validator/v10 v10.17.0
@@ -35,11 +35,11 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/uuid v1.4.0 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgx/v5 v5.4.3 // indirect
 	github.com/klauspost/compress v1.16.0 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
@@ -72,7 +72,6 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.16.1 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240125205218-1f4bbc51befe // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
@@ -86,5 +85,3 @@ require (
 	go.uber.org/zap v1.26.0
 	gorm.io/driver/postgres v1.5.4
 )
-
-replace github.com/ebisaan/proto/golang/inventory => ../proto/golang/inventory

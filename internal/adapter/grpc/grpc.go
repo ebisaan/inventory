@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	inventoryv1 "github.com/ebisaan/proto/golang/inventory/v1"
+	inventoryv1 "github.com/ebisaan/proto/golang/inventory/v1beta1"
 	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
