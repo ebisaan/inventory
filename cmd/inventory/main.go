@@ -12,7 +12,7 @@ import (
 	"github.com/ebisaan/inventory/config"
 	"github.com/ebisaan/inventory/internal/adapter/grpc"
 	"github.com/ebisaan/inventory/internal/adapter/postgres"
-	"github.com/ebisaan/inventory/internal/application/core/app"
+	"github.com/ebisaan/inventory/internal/application/core/api"
 	"github.com/ebisaan/inventory/internal/logger"
 )
 
@@ -47,7 +47,11 @@ func main() {
 		zap.L().Fatal("failed to migrate" + err.Error())
 	}
 
-	app := app.NewApplication(db)
+	app, err := api.NewApplication(db)
+	if err != nil {
+		zap.L().Fatal("failed to create application adapter" + err.Error())
+	}
+
 	grpc := grpc.NewAdapter(app, grpc.Config{
 		Port: cfg.Port,
 		Env:  cfg.Env,

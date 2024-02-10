@@ -22,6 +22,63 @@ func (_m *MockAPI) EXPECT() *MockAPI_Expecter {
 	return &MockAPI_Expecter{mock: &_m.Mock}
 }
 
+// CreateProduct provides a mock function with given fields: ctx, req
+func (_m *MockAPI) CreateProduct(ctx context.Context, req *domain.CreateProductRequest) (int64, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateProduct")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.CreateProductRequest) (int64, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.CreateProductRequest) int64); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *domain.CreateProductRequest) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockAPI_CreateProduct_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateProduct'
+type MockAPI_CreateProduct_Call struct {
+	*mock.Call
+}
+
+// CreateProduct is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *domain.CreateProductRequest
+func (_e *MockAPI_Expecter) CreateProduct(ctx interface{}, req interface{}) *MockAPI_CreateProduct_Call {
+	return &MockAPI_CreateProduct_Call{Call: _e.mock.On("CreateProduct", ctx, req)}
+}
+
+func (_c *MockAPI_CreateProduct_Call) Run(run func(ctx context.Context, req *domain.CreateProductRequest)) *MockAPI_CreateProduct_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*domain.CreateProductRequest))
+	})
+	return _c
+}
+
+func (_c *MockAPI_CreateProduct_Call) Return(id int64, err error) *MockAPI_CreateProduct_Call {
+	_c.Call.Return(id, err)
+	return _c
+}
+
+func (_c *MockAPI_CreateProduct_Call) RunAndReturn(run func(context.Context, *domain.CreateProductRequest) (int64, error)) *MockAPI_CreateProduct_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetProductByID provides a mock function with given fields: ctx, id
 func (_m *MockAPI) GetProductByID(ctx context.Context, id int64) (*domain.Product, error) {
 	ret := _m.Called(ctx, id)
@@ -143,6 +200,53 @@ func (_c *MockAPI_GetProducts_Call) Return(_a0 []*domain.Product, _a1 domain.Met
 }
 
 func (_c *MockAPI_GetProducts_Call) RunAndReturn(run func(context.Context, domain.Filter) ([]*domain.Product, domain.Metadata, error)) *MockAPI_GetProducts_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateProduct provides a mock function with given fields: ctx, req
+func (_m *MockAPI) UpdateProduct(ctx context.Context, req *domain.UpdateProductRequest) error {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateProduct")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.UpdateProductRequest) error); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockAPI_UpdateProduct_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateProduct'
+type MockAPI_UpdateProduct_Call struct {
+	*mock.Call
+}
+
+// UpdateProduct is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *domain.UpdateProductRequest
+func (_e *MockAPI_Expecter) UpdateProduct(ctx interface{}, req interface{}) *MockAPI_UpdateProduct_Call {
+	return &MockAPI_UpdateProduct_Call{Call: _e.mock.On("UpdateProduct", ctx, req)}
+}
+
+func (_c *MockAPI_UpdateProduct_Call) Run(run func(ctx context.Context, req *domain.UpdateProductRequest)) *MockAPI_UpdateProduct_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*domain.UpdateProductRequest))
+	})
+	return _c
+}
+
+func (_c *MockAPI_UpdateProduct_Call) Return(_a0 error) *MockAPI_UpdateProduct_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockAPI_UpdateProduct_Call) RunAndReturn(run func(context.Context, *domain.UpdateProductRequest) error) *MockAPI_UpdateProduct_Call {
 	_c.Call.Return(run)
 	return _c
 }

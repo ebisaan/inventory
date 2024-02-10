@@ -22,6 +22,110 @@ func (_m *MockDB) EXPECT() *MockDB_Expecter {
 	return &MockDB_Expecter{mock: &_m.Mock}
 }
 
+// CreateProduct provides a mock function with given fields: ctx, req
+func (_m *MockDB) CreateProduct(ctx context.Context, req *domain.CreateProductRequest) (int64, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateProduct")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.CreateProductRequest) (int64, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.CreateProductRequest) int64); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *domain.CreateProductRequest) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockDB_CreateProduct_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateProduct'
+type MockDB_CreateProduct_Call struct {
+	*mock.Call
+}
+
+// CreateProduct is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *domain.CreateProductRequest
+func (_e *MockDB_Expecter) CreateProduct(ctx interface{}, req interface{}) *MockDB_CreateProduct_Call {
+	return &MockDB_CreateProduct_Call{Call: _e.mock.On("CreateProduct", ctx, req)}
+}
+
+func (_c *MockDB_CreateProduct_Call) Run(run func(ctx context.Context, req *domain.CreateProductRequest)) *MockDB_CreateProduct_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*domain.CreateProductRequest))
+	})
+	return _c
+}
+
+func (_c *MockDB_CreateProduct_Call) Return(id int64, err error) *MockDB_CreateProduct_Call {
+	_c.Call.Return(id, err)
+	return _c
+}
+
+func (_c *MockDB_CreateProduct_Call) RunAndReturn(run func(context.Context, *domain.CreateProductRequest) (int64, error)) *MockDB_CreateProduct_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteProduct provides a mock function with given fields: ctx, req
+func (_m *MockDB) DeleteProduct(ctx context.Context, req *domain.DeleteProductRequest) error {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteProduct")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.DeleteProductRequest) error); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockDB_DeleteProduct_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteProduct'
+type MockDB_DeleteProduct_Call struct {
+	*mock.Call
+}
+
+// DeleteProduct is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *domain.DeleteProductRequest
+func (_e *MockDB_Expecter) DeleteProduct(ctx interface{}, req interface{}) *MockDB_DeleteProduct_Call {
+	return &MockDB_DeleteProduct_Call{Call: _e.mock.On("DeleteProduct", ctx, req)}
+}
+
+func (_c *MockDB_DeleteProduct_Call) Run(run func(ctx context.Context, req *domain.DeleteProductRequest)) *MockDB_DeleteProduct_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*domain.DeleteProductRequest))
+	})
+	return _c
+}
+
+func (_c *MockDB_DeleteProduct_Call) Return(_a0 error) *MockDB_DeleteProduct_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockDB_DeleteProduct_Call) RunAndReturn(run func(context.Context, *domain.DeleteProductRequest) error) *MockDB_DeleteProduct_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetProductByID provides a mock function with given fields: ctx, id
 func (_m *MockDB) GetProductByID(ctx context.Context, id int64) (*domain.Product, error) {
 	ret := _m.Called(ctx, id)
@@ -143,6 +247,167 @@ func (_c *MockDB_GetProducts_Call) Return(_a0 int64, _a1 []*domain.Product, _a2 
 }
 
 func (_c *MockDB_GetProducts_Call) RunAndReturn(run func(context.Context, domain.Filter) (int64, []*domain.Product, error)) *MockDB_GetProducts_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// IsCurrencyCodeExists provides a mock function with given fields: ctx, currencyCode
+func (_m *MockDB) IsCurrencyCodeExists(ctx context.Context, currencyCode string) (bool, error) {
+	ret := _m.Called(ctx, currencyCode)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsCurrencyCodeExists")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return rf(ctx, currencyCode)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = rf(ctx, currencyCode)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, currencyCode)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockDB_IsCurrencyCodeExists_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsCurrencyCodeExists'
+type MockDB_IsCurrencyCodeExists_Call struct {
+	*mock.Call
+}
+
+// IsCurrencyCodeExists is a helper method to define mock.On call
+//   - ctx context.Context
+//   - currencyCode string
+func (_e *MockDB_Expecter) IsCurrencyCodeExists(ctx interface{}, currencyCode interface{}) *MockDB_IsCurrencyCodeExists_Call {
+	return &MockDB_IsCurrencyCodeExists_Call{Call: _e.mock.On("IsCurrencyCodeExists", ctx, currencyCode)}
+}
+
+func (_c *MockDB_IsCurrencyCodeExists_Call) Run(run func(ctx context.Context, currencyCode string)) *MockDB_IsCurrencyCodeExists_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockDB_IsCurrencyCodeExists_Call) Return(_a0 bool, _a1 error) *MockDB_IsCurrencyCodeExists_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockDB_IsCurrencyCodeExists_Call) RunAndReturn(run func(context.Context, string) (bool, error)) *MockDB_IsCurrencyCodeExists_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// IsSubCategoryExists provides a mock function with given fields: ctx, subCategory
+func (_m *MockDB) IsSubCategoryExists(ctx context.Context, subCategory string) (bool, error) {
+	ret := _m.Called(ctx, subCategory)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsSubCategoryExists")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return rf(ctx, subCategory)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = rf(ctx, subCategory)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, subCategory)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockDB_IsSubCategoryExists_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsSubCategoryExists'
+type MockDB_IsSubCategoryExists_Call struct {
+	*mock.Call
+}
+
+// IsSubCategoryExists is a helper method to define mock.On call
+//   - ctx context.Context
+//   - subCategory string
+func (_e *MockDB_Expecter) IsSubCategoryExists(ctx interface{}, subCategory interface{}) *MockDB_IsSubCategoryExists_Call {
+	return &MockDB_IsSubCategoryExists_Call{Call: _e.mock.On("IsSubCategoryExists", ctx, subCategory)}
+}
+
+func (_c *MockDB_IsSubCategoryExists_Call) Run(run func(ctx context.Context, subCategory string)) *MockDB_IsSubCategoryExists_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockDB_IsSubCategoryExists_Call) Return(_a0 bool, _a1 error) *MockDB_IsSubCategoryExists_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockDB_IsSubCategoryExists_Call) RunAndReturn(run func(context.Context, string) (bool, error)) *MockDB_IsSubCategoryExists_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateProduct provides a mock function with given fields: ctx, req
+func (_m *MockDB) UpdateProduct(ctx context.Context, req *domain.UpdateProductRequest) error {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateProduct")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.UpdateProductRequest) error); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockDB_UpdateProduct_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateProduct'
+type MockDB_UpdateProduct_Call struct {
+	*mock.Call
+}
+
+// UpdateProduct is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *domain.UpdateProductRequest
+func (_e *MockDB_Expecter) UpdateProduct(ctx interface{}, req interface{}) *MockDB_UpdateProduct_Call {
+	return &MockDB_UpdateProduct_Call{Call: _e.mock.On("UpdateProduct", ctx, req)}
+}
+
+func (_c *MockDB_UpdateProduct_Call) Run(run func(ctx context.Context, req *domain.UpdateProductRequest)) *MockDB_UpdateProduct_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*domain.UpdateProductRequest))
+	})
+	return _c
+}
+
+func (_c *MockDB_UpdateProduct_Call) Return(_a0 error) *MockDB_UpdateProduct_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockDB_UpdateProduct_Call) RunAndReturn(run func(context.Context, *domain.UpdateProductRequest) error) *MockDB_UpdateProduct_Call {
 	_c.Call.Return(run)
 	return _c
 }

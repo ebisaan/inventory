@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	inventory "github.com/ebisaan/proto/golang/inventory/v1"
+	inventoryv1 "github.com/ebisaan/proto/golang/inventory/v1beta1"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -19,7 +19,7 @@ import (
 	"github.com/ebisaan/inventory/internal/application/port"
 )
 
-var _ inventory.InventoryServiceServer = (*Adapter)(nil)
+var _ inventoryv1.InventoryServiceServer = (*Adapter)(nil)
 
 type Adapter struct {
 	Done     chan struct{}
@@ -28,7 +28,7 @@ type Adapter struct {
 	cfg      Config
 	wg       sync.WaitGroup
 	shutdown chan struct{}
-	inventory.UnimplementedInventoryServiceServer
+	inventoryv1.UnimplementedInventoryServiceServer
 }
 
 type Config struct {
@@ -61,7 +61,7 @@ func (a *Adapter) Run() error {
 	}
 
 	srv := grpc.NewServer(opts...)
-	inventory.RegisterInventoryServiceServer(srv, a)
+	inventoryv1.RegisterInventoryServiceServer(srv, a)
 	if a.cfg.Env == config.DevEnv {
 		reflection.Register(srv)
 	}

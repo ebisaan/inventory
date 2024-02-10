@@ -8,9 +8,13 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/ebisaan/inventory/internal/application/core/domain"
+	"github.com/ebisaan/inventory/internal/application/port"
 )
+
+var _ port.DB = (*Adapter)(nil)
 
 type Adapter struct {
 	db *gorm.DB
@@ -91,6 +95,170 @@ func (a *Adapter) GetProducts(ctx context.Context, filter domain.Filter) (int64,
 	}
 
 	return total, domainProducts(products), nil
+}
+
+func (a *Adapter) CreateProduct(ctx context.Context, dp *domain.CreateProductRequest) (id int64, err error) {
+	db := a.db.WithContext(ctx)
+
+	p := insertedProduct(dp)
+
+	tx := db.Begin()
+	defer func() {
+		var txErr error
+		if err == nil {
+			txErr = tx.Commit().Error
+		} else {
+			txErr = tx.Rollback().Error
+		}
+
+		if txErr != nil {
+			err = fmt.Errorf("%w: %w", txErr, err)
+		}
+	}()
+
+	scID, err := getSubcategoryIDByName(tx, p.SubCategory.Name)
+	if err != nil {
+		return 0, fmt.Errorf("select subcategory id: %w", err)
+	}
+	p.SubCategoryID = scID
+
+	crcID, err := getCurrencyIDByCode(tx, p.Currency.Code)
+	if err != nil {
+		return 0, fmt.Errorf("select currency id: %w", err)
+	}
+	p.CurrencyID = crcID
+
+	err = tx.Omit(clause.Associations).Create(&p).Error
+	if err != nil {
+		return 0, fmt.Errorf("insert product: %w", err)
+	}
+
+	return p.ID, nil
+}
+
+func (a *Adapter) UpdateProduct(ctx context.Context, dp *domain.UpdateProductRequest) (err error) {
+	db := a.db.WithContext(ctx)
+
+	p := updatedProduct(dp)
+	curVersion := p.Version
+	p.Version += 1
+
+	tx := db.Begin()
+	defer func() {
+		var txErr error
+		if err == nil {
+			txErr = tx.Commit().Error
+		} else {
+			txErr = tx.Rollback().Error
+		}
+
+		if txErr != nil {
+			err = fmt.Errorf("%w: %w", txErr, err)
+		}
+	}()
+
+	scID, err := getSubcategoryIDByName(tx, p.SubCategory.Name)
+	if err != nil {
+		return fmt.Errorf("select subcategory id: %w", err)
+	}
+	p.SubCategoryID = scID
+
+	crcID, err := getCurrencyIDByCode(tx, p.Currency.Code)
+	if err != nil {
+		return fmt.Errorf("select currency id: %w", err)
+	}
+	p.CurrencyID = crcID
+
+	res := tx.Omit(clause.Associations).Where("id = ?", p.ID).Where("version = ?", curVersion).Updates(&p)
+	if err := res.Error; err != nil {
+		return fmt.Errorf("select product by id=%d: %w", p.ID, err)
+	}
+
+	if res.RowsAffected == 0 {
+		return domain.ErrEditConflict
+	}
+
+	return nil
+}
+
+func (a *Adapter) DeleteProduct(ctx context.Context, req *domain.DeleteProductRequest) error {
+	db := a.db.WithContext(ctx)
+
+	res := db.Where("id = ?", req.ID).Where("version = ?", req.Version).Delete(&Product{})
+	if err := res.Error; err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return domain.ErrEditConflict
+		default:
+			return err
+		}
+	}
+
+	if res.RowsAffected == 0 {
+		return domain.ErrEditConflict
+	}
+
+	return nil
+}
+
+func (a *Adapter) IsSubCategoryExists(ctx context.Context, name string) (bool, error) {
+	var found bool
+	err := a.db.
+		Model(&SubCategory{}).
+		Select("count(*) > 0").
+		Where("name = ?", name).
+		Take(&found).
+		Error
+	if err != nil {
+		return false, err
+	}
+
+	return found, nil
+}
+
+func (a *Adapter) IsCurrencyCodeExists(ctx context.Context, code string) (bool, error) {
+	var found bool
+	err := a.db.
+		Model(&Currency{}).
+		Select("count(*) > 0").
+		Where("code = ?", code).
+		Take(&found).
+		Error
+	if err != nil {
+		return false, err
+	}
+
+	return found, nil
+}
+
+func getSubcategoryIDByName(db *gorm.DB, name string) (int64, error) {
+	var id int64
+	err := db.Model(&SubCategory{}).Select("id").Where("name = ?", name).First(&id).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return 0, domain.ErrAssociationNotFound
+		default:
+			return 0, err
+		}
+	}
+
+	return id, nil
+}
+
+func getCurrencyIDByCode(db *gorm.DB, code string) (int64, error) {
+	var id int64
+	err := db.Model(&Currency{}).Select("id").Where("code = ?", code).First(&id).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return 0, domain.ErrAssociationNotFound
+		default:
+			return 0, fmt.Errorf("select currency id: %w", err)
+		}
+	}
+
+	return id, nil
 }
 
 func (a *Adapter) AutoMigration(ctx context.Context) error {

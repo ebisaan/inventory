@@ -13,34 +13,36 @@ type BaseModel struct {
 type Product struct {
 	BaseModel
 
-	Name        string `gorm:"notnull"`
-	StockNumber int    `gorm:"type=integer;notnull;check:stock_number > 0"`
+	Name        string `gorm:"not null"`
+	StockNumber int    `gorm:"type=integer;not null;check:stock_number > 0"`
 	Image       string
 
 	DiscountPrice float64 `gorm:"check:discount_price >= 0"`
-	ActualPrice   float64 `gorm:"notnull;check:actual_price >= 0"`
+	ActualPrice   float64 `gorm:"not null;check:actual_price >= 0"`
 
-	SubCategoryID int64 `gorm:"notnull"`
+	SubCategoryID int64 `gorm:"not null"`
 	SubCategory   SubCategory
 
-	CurrencyID int64 `gorm:"notnull"`
+	CurrencyID int64 `gorm:"not null"`
 	Currency   Currency
+
+	Version int64 `gorm:"not null;default:1"`
 }
 
 type MainCategory struct {
 	BaseModel
-	Name string `gorm:"notnull;uniqueIndex"`
+	Name string `gorm:"not null;uniqueIndex"`
 }
 
 type SubCategory struct {
 	BaseModel
-	Name           string `gorm:"notnull;uniqueIndex"`
-	MainCategoryID int64  `gorm:"notnull"`
+	Name           string `gorm:"not null;uniqueIndex"`
+	MainCategoryID int64  `gorm:"not null"`
 	MainCategory   MainCategory
 }
 
 type Currency struct {
 	BaseModel
-	Code   string `gorm:"notnull;uniqueIndex"`
-	Symbol string `gorm:"notnull;uniqueIndex"`
+	Code   string `gorm:"not null;uniqueIndex"`
+	Symbol string `gorm:"not null;uniqueIndex"`
 }
