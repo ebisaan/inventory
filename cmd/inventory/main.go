@@ -64,6 +64,11 @@ func main() {
 }
 
 func parseFromFlags(cfg *config.Config) {
+	flag.Func("port", "API server's port", func(s string) error {
+		var err error
+		cfg.Port, err = strconv.Atoi(s)
+		return err
+	})
 	flag.Func("dsn", "Data source name", func(s string) error {
 		cfg.DB.DSN = s
 
@@ -75,7 +80,7 @@ func parseFromFlags(cfg *config.Config) {
 		return nil
 	})
 
-	flag.Func("db-max-open-conns", "Max open connections", func(s string) error {
+	flag.Func("db-max-open-conns", "Max database open connections", func(s string) error {
 		num, err := strconv.Atoi(s)
 		if err != nil {
 			return fmt.Errorf("invalid db-max-open-conns: %w", err)
@@ -85,7 +90,7 @@ func parseFromFlags(cfg *config.Config) {
 		return nil
 	})
 
-	flag.Func("db-max-idle-conns", "Max open connections", func(s string) error {
+	flag.Func("db-max-idle-conns", "Max database idle connections", func(s string) error {
 		num, err := strconv.Atoi(s)
 		if err != nil {
 			return fmt.Errorf("invalid db-max-idle-conns: %w", err)
@@ -95,7 +100,7 @@ func parseFromFlags(cfg *config.Config) {
 		return nil
 	})
 
-	flag.Func("db-max-idle-time", "Max open connections", func(s string) error {
+	flag.Func("db-max-idle-time", "Max database connection idle time", func(s string) error {
 		dur, err := time.ParseDuration(s)
 		if err != nil {
 			return fmt.Errorf("invalid db-max-idle-time: %w", err)
