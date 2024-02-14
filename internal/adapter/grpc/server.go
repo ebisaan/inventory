@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	inventoryv1 "github.com/ebisaan/proto/golang/inventory/v1beta1"
+	inventoryv1 "github.com/ebisaan/proto/golang/ebisaan/inventory/v1beta1"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -22,12 +22,11 @@ import (
 var _ inventoryv1.InventoryServiceServer = (*Adapter)(nil)
 
 type Adapter struct {
-	Done     chan struct{}
-	server   *grpc.Server
-	app      port.API
-	cfg      Config
-	wg       sync.WaitGroup
-	shutdown chan struct{}
+	Done   chan struct{}
+	server *grpc.Server
+	app    port.API
+	cfg    Config
+	wg     sync.WaitGroup
 	inventoryv1.UnimplementedInventoryServiceServer
 }
 
@@ -38,10 +37,9 @@ type Config struct {
 
 func NewAdapter(api port.API, cfg Config) *Adapter {
 	return &Adapter{
-		app:      api,
-		cfg:      cfg,
-		Done:     make(chan struct{}),
-		shutdown: make(chan struct{}),
+		app:  api,
+		cfg:  cfg,
+		Done: make(chan struct{}),
 	}
 }
 
@@ -67,8 +65,10 @@ func (a *Adapter) Run() error {
 	}
 	a.server = srv
 
-	zap.L().Info(fmt.Sprintf("starting order grpc server on port %d ...", a.cfg.Port))
-	go a.GracefulShutdown()
+	shutdownCh := make(chan struct{})
+	go a.gracefulShutdown(shutdownCh)
+
+	zap.L().Info(fmt.Sprintf("Starting gRPC server on port %d ...", a.cfg.Port))
 	err = srv.Serve(l)
 	if err != nil {
 		return err
@@ -76,22 +76,29 @@ func (a *Adapter) Run() error {
 
 	select {
 	case <-time.After(10 * time.Second):
-	case <-a.shutdown:
+	case <-shutdownCh:
 	}
 
+	zap.L().Info("Stopped gRPC server")
 	return nil
 }
 
-func (a *Adapter) GracefulShutdown() {
+func (a *Adapter) gracefulShutdown(shutdown chan<- struct{}) {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	s := <-quit
-	zap.L().Info(fmt.Sprintf("receive signal %s, stopping payment grpc server...", s))
+	zap.L().Info(fmt.Sprintf("Received signal %s", s))
+
+	zap.L().Info("Shutdowning...")
 	a.server.GracefulStop()
+
+	zap.L().Info("Waiting for background tasks...")
 	close(a.Done)
 	a.wg.Wait()
-	close(a.shutdown)
+	zap.L().Info("Background tasks completed")
+
+	close(shutdown)
 }
 
 func (a *Adapter) Background(fn func()) {
@@ -102,7 +109,7 @@ func (a *Adapter) Background(fn func()) {
 		defer func() {
 			err := recover()
 			if err != nil {
-				zap.L().Error(fmt.Sprintf("recover: %s", err))
+				zap.L().Error(fmt.Sprintf("Recovered from: %s", err))
 			}
 		}()
 

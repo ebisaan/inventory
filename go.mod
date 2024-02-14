@@ -1,18 +1,18 @@
 module github.com/ebisaan/inventory
 
-go 1.21.5
+go 1.21.6
 
 require (
 	github.com/creasty/defaults v1.7.0
 	github.com/docker/go-connections v0.4.0
-	github.com/ebisaan/proto/golang/inventory v0.2.0
+	github.com/ebisaan/proto/golang/ebisaan/inventory v0.3.0
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/go-playground/validator/v10 v10.17.0
 	github.com/goccy/go-yaml v1.11.3
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.1
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240125205218-1f4bbc51befe
-	google.golang.org/grpc v1.61.0
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240205150955-31a09d347014
+	google.golang.org/grpc v1.61.1
 	gorm.io/gorm v1.25.5
 )
 
@@ -72,6 +72,8 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.16.1 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
+	google.golang.org/genproto v0.0.0-20240205150955-31a09d347014 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240213162025-012b6fc9bca9 // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

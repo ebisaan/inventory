@@ -9,11 +9,11 @@ help:
 	@echo 'Usage:'
 	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' | sed -e 's/^/ /'
 
-## run/inventory
+## run/inventory params=$1
 .PHONY: run/inventory
 run/inventory:
 	go mod tidy
-	go run ./cmd/inventory
+	go run ./cmd/inventory ${param}
 
 ## run/automigrate
 .PHONY: run/automigrate

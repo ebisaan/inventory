@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"strconv"
@@ -23,13 +22,13 @@ func main() {
 
 	lgr, err := logger.New(zap.InfoLevel)
 	if err != nil {
-		zap.L().Fatal("failed to create logger: " + err.Error())
+		zap.L().Fatal("Failed to create logger: " + err.Error())
 	}
 	zap.ReplaceGlobals(lgr)
 
 	err = cfg.ReadFrom(configFile)
 	if err != nil {
-		zap.L().Fatal("failed to read config from file: " + err.Error())
+		zap.L().Fatal("Failed to read config from file: " + err.Error())
 	}
 
 	parseFromFlags(&cfg)
@@ -40,16 +39,12 @@ func main() {
 		MaxIdleTime:  cfg.DB.MaxIdleTime,
 	})
 	if err != nil {
-		zap.L().Fatal("failed to create postgres adapter" + err.Error())
-	}
-	err = db.AutoMigration(context.Background())
-	if err != nil {
-		zap.L().Fatal("failed to migrate" + err.Error())
+		zap.L().Fatal("Failed to create postgres adapter" + err.Error())
 	}
 
 	app, err := api.NewApplication(db)
 	if err != nil {
-		zap.L().Fatal("failed to create application adapter" + err.Error())
+		zap.L().Fatal("Failed to create application adapter" + err.Error())
 	}
 
 	grpc := grpc.NewAdapter(app, grpc.Config{
@@ -59,7 +54,7 @@ func main() {
 
 	err = grpc.Run()
 	if err != nil {
-		zap.L().Fatal("failed to run grpc server" + err.Error())
+		zap.L().Fatal("Failed to run grpc server" + err.Error())
 	}
 }
 
